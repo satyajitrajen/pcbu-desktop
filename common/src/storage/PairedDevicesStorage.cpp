@@ -6,6 +6,7 @@
 
 #include "AppSettings.h"
 #include "shell/Shell.h"
+#include "platform/NetworkHelper.h"
 #include "utils/StringUtils.h"
 
 #ifdef WINDOWS
@@ -45,6 +46,24 @@ std::vector<PairedDevice> PairedDevicesStorage::GetDevicesForUser(const std::str
 #endif
   }
   return result;
+}
+
+void PairedDevicesStorage::RememberTsIP(const std::string &deviceId, const std::string &tsIP) {
+  if(deviceId.empty() || !NetworkHelper::IsOverlayIpv4(tsIP))
+    return;
+  auto devices = GetDevices();
+  auto changed = false;
+  for(auto &device : devices) {
+    if(device.id != deviceId)
+      continue;
+    if(device.tsIP == tsIP)
+      return;
+    device.tsIP = tsIP;
+    changed = true;
+    break;
+  }
+  if(changed)
+    SaveDevices(devices);
 }
 
 void PairedDevicesStorage::AddDevice(const PairedDevice &device) {
@@ -89,6 +108,8 @@ std::vector<PairedDevice> PairedDevicesStorage::GetDevices() {
       device.tcpPort = entry["tcpPort"];
       device.udpPort = entry["udpPort"];
       device.udpManualPort = entry["udpManualPort"];
+      if(entry.contains("tsIP") && entry["tsIP"].is_string())
+        device.tsIP = entry["tsIP"];
       result.emplace_back(device);
     }
   } catch(const std::exception &ex) {
@@ -116,7 +137,8 @@ void PairedDevicesStorage::SaveDevices(const std::vector<PairedDevice> &devices)
                                    {"udpPort", device.udpPort},
                                    {"udpManualPort", device.udpManualPort},
                                    {"bluetoothAddress", device.bluetoothAddress},
-                                   {"cloudToken", device.cloudToken}};
+                                   {"cloudToken", device.cloudToken},
+                                   {"tsIP", device.tsIP}};
       devicesJson.emplace_back(deviceJson);
     }
     auto baseDir = AppSettings::GetBaseDir();

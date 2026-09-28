@@ -1,10 +1,10 @@
 [Setup]
-AppName=PC Bio Unlock
-AppVerName=PC Bio Unlock
+AppName=JarvisAuth
+AppVerName=JarvisAuth
 WizardStyle=modern
-DefaultDirName={autopf}\PCBioUnlock
-DefaultGroupName=PC Bio Unlock
-UninstallDisplayIcon={app}\pcbu_desktop.exe
+DefaultDirName={autopf}\JarvisAuth
+DefaultGroupName=JarvisAuth
+UninstallDisplayIcon={app}\JarvisAuth.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=..\build\
@@ -21,10 +21,10 @@ Source: "..\build\installer_dir\*"; DestDir: "{app}"; Flags: recursesubdirs
 Type: files; Name: "{win}\System32\win-pcbiounlock.dll"
 
 [Icons]
-Name: "{group}\PC Bio Unlock"; Filename: "{app}\pcbu_desktop.exe"
+Name: "{group}\JarvisAuth"; Filename: "{app}\JarvisAuth.exe"
 
 [Run]
-Filename: "{app}\pcbu_desktop.exe"; Description: "Launch PC Bio Unlock"; Verb: runas; Flags: postinstall nowait skipifsilent runascurrentuser shellexec
+Filename: "{app}\JarvisAuth.exe"; Description: "Launch JarvisAuth"; Verb: runas; Flags: postinstall nowait skipifsilent runascurrentuser shellexec
 
 [Code]
 const

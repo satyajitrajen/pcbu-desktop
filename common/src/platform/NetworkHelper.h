@@ -29,6 +29,10 @@ public:
   static std::vector<NetworkInterface> GetWakeOnLanInterfaces();
   static std::vector<BroadcastTarget> GetBroadcastTargets();
 
+  // Tailscale.com CGNAT (100.64.0.0/10). Not RFC1918; do not use as the default pairing LAN interface.
+  static bool IsOverlayIpv4(const std::string &ip);
+  static std::string GetOverlayIpv4();
+
 private:
   NetworkHelper() = default;
 

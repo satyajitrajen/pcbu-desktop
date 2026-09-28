@@ -1,12 +1,11 @@
-# PC Bio Unlock
+# JarvisAuth
 
 **Unlock your PC with your phone.** Instead of typing your password at the login screen, the lock screen or a permission prompt, just confirm it with your fingerprint or face on your Android phone.
 
-This repository holds the desktop app. The phone app is available on Google Play:
+This is a personal desktop app project. Pairing still uses the PC Bio Unlock Android app from Google Play.
 
-<a href="https://play.google.com/store/apps/details?id=com.meisapps.pcbiounlock" target="_blank">
-<img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80">
-</a>
+> [!WARNING]
+> macOS support is considered experimental and not ready for end users.
 
 > [!WARNING]
 > macOS support is considered experimental and not ready for end users.
@@ -38,7 +37,7 @@ This repository holds the desktop app. The phone app is available on Google Play
 
 ## Installation
 
-Download the latest release for your system from the [releases page](https://github.com/MeisApps/pcbu-desktop/releases), then follow the [installation guide](https://meis-apps.com/pc-bio-unlock/how-to-install), which walks through the system requirements, the setup and the pairing.
+Build from source (see below) and run the packaged installer for your platform. Pair the Android app over the same local network or Bluetooth.
 
 ## How it works
 
@@ -58,7 +57,7 @@ If anything ever goes wrong, nothing is lost: hold <kbd>Left Ctrl</kbd> + <kbd>L
 
 ## Security & privacy
 
-PC Bio Unlock is designed so that using it does not make your PC easier to break into.
+JarvisAuth is designed so that using it does not make your PC easier to break into.
 
 **Your password never leaves your PC.** It is stored encrypted, and the key to it lives only on your paired phone. Your phone never sees your password, it only holds the key, and the password is never sent over the network or to anyone else. Without your phone the stored copy is unreadable, so someone who takes the file off your PC gets nothing usable. On top of that, the file is locked down so that only the system can access it.
 
@@ -66,13 +65,11 @@ PC Bio Unlock is designed so that using it does not make your PC easier to break
 
 **Everything is end-to-end encrypted.** Pairing and unlocking are protected with modern authenticated encryption (AES-256-GCM), with keys that are exchanged out of band through the QR code you scan. Every message is signed against tampering and carries a timestamp, so recorded traffic cannot be replayed later to unlock your PC. Each unlock also has to answer a one-time challenge, so an old response is worthless.
 
-**Nothing leaves your network.** There is no account and no telemetry. Whatever your PC and your phone say to each other is encrypted with keys that only those two devices hold, so it is unreadable to anyone else, including us. The only requests that leave your network are the check for a new version and, if you decide to install one, the download itself.
+**Nothing leaves your network.** There is no account, no telemetry, and no remote update check.
 
 **Your PC stays closed.** The app only accepts connections while you are pairing or while an unlock is actually running, and stops listening again as soon as it is done.
 
 **It's auditable.** The full source of both the app and the login components is in this repository, under the GPL.
-
-Found a security issue? Please report it privately through [GitHub security advisories](https://github.com/MeisApps/pcbu-desktop/security/advisories) instead of a public issue.
 
 ## Building from source
 
@@ -112,24 +109,8 @@ Qt is detected automatically; pass `-DQT_BASE_DIR=<path>` to pick a specific ins
 
 ## Troubleshooting
 
-Connection problems, pairing issues and how to get back into a PC that won't let you in are covered in the [troubleshooting guide](https://meis-apps.com/pc-bio-unlock/troubleshooting).
-
-For anything else, the app has two tools built in: a log viewer for both the app and the login component, with a *debug logging* switch in the settings, and an unlock test that lets you try a paired device without locking your screen.
-
-## Contributing
-
-Issues and pull requests are welcome. A few pointers:
-
-- The code style is enforced by the checked-in `.clang-format` and `.clang-tidy`. Please run clang-format before submitting.
-- **Translations**: copy `common/res/en_US.json`, translate the values, then register the new file in `common/CMakeLists.txt` (`embed_json`), `common/src/utils/I18n.cpp` and `LocaleHelper`.
-- **Bug reports**: please use the issue template and attach the desktop and module logs; they are what make network and PAM problems diagnosable.
+The app has two tools built in: a log viewer for both the app and the login component, with a *debug logging* switch in the settings, and an unlock test that lets you try a paired device without locking your screen.
 
 ## License
 
 [GNU General Public License v3.0](LICENSE)
-
-## Links
-
-- Website: [meis-apps.com](https://meis-apps.com)
-- Android app: [Google Play](https://play.google.com/store/apps/details?id=com.meisapps.pcbiounlock)
-- Support the project: [Ko-fi](https://ko-fi.com/meisapps)

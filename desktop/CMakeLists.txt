@@ -34,7 +34,7 @@ elseif(APPLE)
     set(CMAKE_PREFIX_PATH "${QT_BASE_DIR}/macos")
 endif()
 
-find_package(Qt6 COMPONENTS Core Gui Quick QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Widgets Network Quick QuickControls2 REQUIRED)
 qt_standard_project_setup()
 qt_policy(SET QTP0004 NEW)
 
@@ -95,6 +95,8 @@ set(QML_FILES
         qml/base/Form.qml
         qml/base/StepForm.qml
         qml/base/StepButtons.qml
+        qml/base/Theme.qml
+        qml/base/BenchWindow.qml
 
         qml/forms/MainForm.qml
         qml/forms/SettingsForm.qml
@@ -106,6 +108,7 @@ set(QML_FILES
         qml/pairing/PairingBTPairForm.qml
         qml/pairing/PairingQRForm.qml
 )
+set_source_files_properties(qml/base/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 set(UI_SRC_FILES
         src/ui/MainWindow.h
         src/ui/MainWindow.cpp
@@ -136,6 +139,10 @@ qt_add_executable(pcbu_desktop
         ${PLATFORM_RES}
 
         src/main.cpp
+        src/ui/DesktopSingleton.cpp
+        src/ui/DesktopSingleton.h
+        src/ui/TrayController.cpp
+        src/ui/TrayController.h
         src/installer/ServiceInstaller.h
         src/utils/QRUtils.cpp
         src/utils/QRUtils.h
@@ -144,7 +151,7 @@ qt_add_executable(pcbu_desktop
         ${PLATFORM_SRC}
 )
 qt_add_qml_module(pcbu_desktop
-        URI PCBioUnlock
+        URI JarvisAuth
         VERSION 1.0
         QML_FILES
         ${QML_FILES}
@@ -155,15 +162,19 @@ qt_add_qml_module(pcbu_desktop
 target_link_libraries(pcbu_desktop PRIVATE
         Qt::Core
         Qt::Gui
+        Qt::Widgets
+        Qt::Network
         Qt::Quick
         Qt::QuickControls2
         pcbu_common
 )
 
 set_target_properties(pcbu_desktop PROPERTIES
+        OUTPUT_NAME JarvisAuth
         WIN32_EXECUTABLE TRUE
         MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.meisapps.PCBioUnlock
+        MACOSX_BUNDLE_BUNDLE_NAME JarvisAuth
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.jarvisauth.JarvisAuth
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/pkg/mac/Info.plist
 )
 install(TARGETS pcbu_desktop

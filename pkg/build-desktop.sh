@@ -77,9 +77,9 @@ fi
 # Package
 if [[ "$PLATFORM" == "win" ]]; then
   mkdir -p installer_dir || true
-  cp desktop/Release/pcbu_desktop.exe installer_dir/
-  "$WIN_MT_PATH" -manifest ../win/requireAdmin.manifest -outputresource:installer_dir/pcbu_desktop.exe
-  "$WIN_QT_PATH/bin/windeployqt" --qmldir ../../desktop/qml installer_dir/pcbu_desktop.exe
+  cp desktop/Release/JarvisAuth.exe installer_dir/
+  "$WIN_MT_PATH" -manifest ../win/requireAdmin.manifest -outputresource:installer_dir/JarvisAuth.exe
+  "$WIN_QT_PATH/bin/windeployqt" --qmldir ../../desktop/qml installer_dir/JarvisAuth.exe
   if [[ "$ARCH" == "arm64" ]]; then # ToDo: Workaround for no windeployqt on arm64
     find "installer_dir/" -type f -name "*.dll" | while read -r dll_file; do
       file_name=$(basename "$dll_file")
@@ -96,7 +96,7 @@ if [[ "$PLATFORM" == "win" ]]; then
   fi
 
   iscc ../win/installer.iss
-  mv mysetup.exe PCBioUnlock-Setup-"$ARCH".exe
+  mv mysetup.exe JarvisAuth-Setup-"$ARCH".exe
 elif [[ "$PLATFORM" == "linux" ]]; then
   wget "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$LINUX_ARCH.AppImage" && chmod +x ./linuxdeploy-"$LINUX_ARCH".AppImage
   wget "https://github.com/darealshinji/linuxdeploy-plugin-checkrt/releases/download/continuous/linuxdeploy-plugin-checkrt.sh" && chmod +x ./linuxdeploy-plugin-checkrt.sh
@@ -104,31 +104,31 @@ elif [[ "$PLATFORM" == "linux" ]]; then
   rm -Rf appimage_dir/ || true
   mkdir -p appimage_dir/usr/bin || true
   mkdir -p appimage_dir/usr/share/icons/hicolor/256x256/apps || true
-  cp desktop/pcbu_desktop appimage_dir/usr/bin/
+  cp desktop/JarvisAuth appimage_dir/usr/bin/
   cp ../linux/run-app.sh appimage_dir/usr/bin/
-  cp ../../desktop/res/icons/icon.png appimage_dir/usr/share/icons/hicolor/256x256/apps/PCBioUnlock.png
+  cp ../../desktop/res/icons/icon.png appimage_dir/usr/share/icons/hicolor/256x256/apps/JarvisAuth.png
   chmod +x appimage_dir/usr/bin/run-app.sh
 
   export QML_SOURCES_PATHS="../../desktop/qml"
   export EXTRA_QT_MODULES="svg;waylandcompositor"
   export EXTRA_PLATFORM_PLUGINS="libqwayland.so"
-  ./linuxdeploy-"$LINUX_ARCH".AppImage --appdir appimage_dir --plugin checkrt --desktop-file ../linux/PCBioUnlock.desktop
+  ./linuxdeploy-"$LINUX_ARCH".AppImage --appdir appimage_dir --plugin checkrt --desktop-file ../linux/JarvisAuth.desktop
   wget "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-$LINUX_ARCH.AppImage" && chmod +x ./linuxdeploy-plugin-qt-"$LINUX_ARCH".AppImage
   ./linuxdeploy-plugin-qt-"$LINUX_ARCH".AppImage --appdir appimage_dir
   rm ./linuxdeploy-plugin-qt-"$LINUX_ARCH".AppImage
-  ./linuxdeploy-"$LINUX_ARCH".AppImage --appdir appimage_dir --plugin checkrt --output appimage --desktop-file ../linux/PCBioUnlock.desktop
-  mv PC_Bio_Unlock*.AppImage PCBioUnlock.AppImage
-  chmod +x PCBioUnlock.AppImage
+  ./linuxdeploy-"$LINUX_ARCH".AppImage --appdir appimage_dir --plugin checkrt --output appimage --desktop-file ../linux/JarvisAuth.desktop
+  mv JarvisAuth*.AppImage JarvisAuth.AppImage
+  chmod +x JarvisAuth.AppImage
 elif [[ "$PLATFORM" == "mac" ]]; then
-  "$QT_BASE_DIR/macos/bin/macdeployqt" desktop/pcbu_desktop.app -qmldir=../../desktop/qml
-  find "desktop/pcbu_desktop.app" -type f -perm +111 | while read -r file; do
+  "$QT_BASE_DIR/macos/bin/macdeployqt" desktop/JarvisAuth.app -qmldir=../../desktop/qml
+  find "desktop/JarvisAuth.app" -type f -perm +111 | while read -r file; do
     echo "Signing $file"
     codesign --force --deep -s - "$file"
   done
 
   rm -Rf dmg_dir/ || true
   mkdir -p dmg_dir/ || true
-  cp -R desktop/pcbu_desktop.app dmg_dir/PCBioUnlock.app
+  cp -R desktop/JarvisAuth.app dmg_dir/JarvisAuth.app
   ln -s /Applications dmg_dir/Applications
 
   if [[ "$CI_BUILD" == "1" ]]; then
@@ -137,5 +137,5 @@ elif [[ "$PLATFORM" == "mac" ]]; then
     echo "Waiting for XProtect..."
     while pgrep XProtect; do sleep 3; done
   fi
-  hdiutil create -volname "PC Bio Unlock" -srcfolder dmg_dir/ -ov -format UDZO ./PCBioUnlock-"$ARCH".dmg
+  hdiutil create -volname "JarvisAuth" -srcfolder dmg_dir/ -ov -format UDZO ./JarvisAuth-"$ARCH".dmg
 fi

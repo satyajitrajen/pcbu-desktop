@@ -1,5 +1,7 @@
 #include "BaseUnlockConnection.h"
 
+#include "platform/NetworkHelper.h"
+#include "storage/PairedDevicesStorage.h"
 #include "utils/AppInfo.h"
 #include "utils/StringUtils.h"
 
@@ -129,6 +131,7 @@ bool BaseUnlockConnection::SendUnlockRequest(SOCKET socket) {
   requestPacket.protoVersion = AppInfo::GetUnlockProtocolVersion();
   requestPacket.deviceId = m_PairedDevice.id;
   requestPacket.encData = StringUtils::ToHexString(cryptResult.data);
+  requestPacket.tsIP = NetworkHelper::GetOverlayIpv4();
   auto requestStr = requestPacket.ToJson().dump();
   spdlog::debug("Writing PacketUnlockRequest...");
   auto writeResult = WritePacket(socket, PACKET_ID_UNLOCK_REQUEST, {requestStr.begin(), requestStr.end()});
@@ -214,6 +217,7 @@ void BaseUnlockConnection::OnResponseReceived(const Packet &packet) {
   // Token check
   if(m_ResponseData.unlockToken == m_UnlockToken) {
     m_UnlockState = UnlockState::SUCCESS;
+    PairedDevicesStorage::RememberTsIP(m_PairedDevice.id, responsePacket.value().tsIP);
   } else {
     m_UnlockState = UnlockState::UNK_ERROR;
   }

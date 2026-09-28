@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 StepForm {
@@ -10,7 +10,7 @@ StepForm {
     Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        color: window.color
+        color: Theme.night
         ColumnLayout {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 25

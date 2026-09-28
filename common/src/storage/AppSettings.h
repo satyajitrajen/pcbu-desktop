@@ -16,6 +16,7 @@ struct PCBUAppStorage {
   uint16_t pairingDiscoveryPort{};
   uint16_t pairingServerPort{};
   uint16_t unlockServerPort{};
+  uint16_t lockServerPort{};
   uint32_t clientSocketTimeout{};
   uint32_t clientConnectTimeout{};
   uint32_t clientConnectRetries{};

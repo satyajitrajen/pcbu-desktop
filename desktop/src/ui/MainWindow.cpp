@@ -13,6 +13,10 @@ MainWindow::~MainWindow() {
     m_LoadingThread.join();
 }
 
+QString MainWindow::GetAppName() {
+  return QString::fromUtf8(AppInfo::GetName());
+}
+
 bool MainWindow::IsInstalled() {
   return ServiceInstaller::IsInstalled();
 }

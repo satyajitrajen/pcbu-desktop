@@ -1,9 +1,8 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 StepForm {
@@ -11,7 +10,7 @@ StepForm {
     Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        color: window.color
+        color: Theme.night
         ColumnLayout {
             anchors.fill: parent
             GroupBox {
@@ -31,7 +30,7 @@ StepForm {
                             Layout.bottomMargin: 10
                             wrapMode: Text.WordWrap
                             textFormat: Text.StyledText
-                            linkColor: Material.accent
+                            linkColor: Theme.brass
                             text: QI18n.Get('notice_ms_account')
                             onLinkActivated: (link) => Qt.openUrlExternally(link)
 

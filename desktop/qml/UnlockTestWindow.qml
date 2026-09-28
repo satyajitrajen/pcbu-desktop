@@ -3,14 +3,15 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
-import PCBioUnlock
+import JarvisAuth
+import 'qrc:/ui/base'
 
-ApplicationWindow {
+BenchWindow {
     property string deviceId: ""
 
     id: unlockTestWindow
     width: 600
-    height: 300
+    height: 320
     minimumWidth: width
     minimumHeight: height
     maximumWidth: width
@@ -21,27 +22,41 @@ ApplicationWindow {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 0
         spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: Theme.brass
+        }
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Label {
                 id: lblUnlockMsg
                 anchors.centerIn: parent
-                font.pixelSize: 28
-                font.weight: Font.DemiBold
+                width: parent.width - 40
+                wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: 22
+                font.weight: Font.DemiBold
+                color: Theme.paper
                 text: QI18n.Get('initializing')
             }
+        }
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Theme.hairline
         }
         Button {
             id: btnUnlockAction
             Layout.fillWidth: true
             Layout.leftMargin: 20
             Layout.rightMargin: 20
+            Layout.topMargin: 16
             Layout.bottomMargin: 20
-            Layout.preferredHeight: 56
+            Layout.preferredHeight: 48
+            highlighted: true
             text: QI18n.Get('cancel')
             onClicked: {
                 if(UnlockTestWindow.IsRunning()) {

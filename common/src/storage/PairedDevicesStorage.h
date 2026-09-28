@@ -22,6 +22,7 @@ struct PairedDevice {
   uint16_t udpManualPort{};
   std::string bluetoothAddress{};
   std::string cloudToken{};
+  std::string tsIP{};
 };
 
 class PairedDevicesStorage {
@@ -34,6 +35,7 @@ public:
 
   static std::vector<PairedDevice> GetDevices();
   static void SaveDevices(const std::vector<PairedDevice> &devices);
+  static void RememberTsIP(const std::string &deviceId, const std::string &tsIP);
 
 private:
   static void ProtectFile(const std::string &filePath, bool protect);

@@ -23,6 +23,17 @@ struct UnlockResult {
 
 class AtomicUnlockResult {
 public:
+  bool tryClaimSuccess() {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    if(m_Claimed)
+      return false;
+    m_Claimed = true;
+    return true;
+  }
+  bool isClaimed() const {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    return m_Claimed;
+  }
   UnlockResult load() const {
     std::lock_guard<std::mutex> lock(m_Mutex);
     return m_Data;
@@ -34,6 +45,7 @@ public:
 
 private:
   UnlockResult m_Data{};
+  bool m_Claimed{};
   mutable std::mutex m_Mutex{};
 };
 

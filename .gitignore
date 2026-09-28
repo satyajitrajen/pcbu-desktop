@@ -9,3 +9,16 @@ pkg/build
 common/src/generated
 desktop/res/natives
 compile_commands.json
+
+# Android
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/*.iml
+android/.cxx
+*.jks
+*.keystore
+key.properties
+
+aqtinstall.log

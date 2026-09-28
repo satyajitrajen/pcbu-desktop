@@ -4,7 +4,8 @@
 #include "connection/unlock/clients/BTUnlockClient.h"
 #include "connection/unlock/clients/TCPUnlockClient.h"
 #include "connection/unlock/servers/TCPUnlockServer.h"
-#include "storage/AppSettings.h"
+#include "platform/NetworkHelper.h"
+#include "storage/PairedDevicesStorage.h"
 
 #ifdef WINDOWS
 #include <Windows.h>
@@ -23,52 +24,56 @@ UnlockHandler::UnlockHandler(const std::function<void(std::string)> &printMessag
 }
 
 UnlockResult UnlockHandler::GetResult(const std::string &authUser, const std::string &authProgram, std::atomic<bool> *isRunning) {
-  auto settings = AppSettings::Get();
   auto devices = PairedDevicesStorage::GetDevicesForUser(authUser);
-  auto hasTCPServer = false;
-
+  if(devices.empty()) {
+    auto errorMsg = I18n::Get("error_not_paired", authUser);
+    spdlog::error(errorMsg);
+    m_PrintMessage(errorMsg);
+    return UnlockResult(UnlockState::NOT_PAIRED_ERROR);
+  }
   UDPUnlockBroadcaster *udpBroadcaster{};
   std::vector<BaseUnlockConnection *> connections{};
+
+  auto addTcpClient = [&](const std::string &ip, uint16_t port, const PairedDevice &device) {
+    if(ip.empty() || port == 0)
+      return;
+    auto *connection = new TCPUnlockClient(ip, static_cast<int>(port), device);
+    connection->SetUnlockInfo(authUser, authProgram);
+    connections.emplace_back(connection);
+  };
+
   for(const auto &device : devices) {
-    BaseUnlockConnection *connection{};
     switch(device.pairingMethod) {
       case PairingMethod::TCP:
-        connection = new TCPUnlockClient(device.ipAddress, device.tcpPort, device);
+        addTcpClient(device.ipAddress, device.tcpPort, device);
         break;
-      case PairingMethod::BLUETOOTH:
-        connection = new BTUnlockClient(device.bluetoothAddress, device);
+      case PairingMethod::BLUETOOTH: {
+        auto *bt = new BTUnlockClient(device.bluetoothAddress, device);
+        bt->SetUnlockInfo(authUser, authProgram);
+        connections.emplace_back(bt);
         break;
+      }
       case PairingMethod::MANUAL_UDP:
       case PairingMethod::UDP: {
         if(udpBroadcaster == nullptr)
           udpBroadcaster = new UDPUnlockBroadcaster();
         auto port = device.pairingMethod == PairingMethod::UDP ? device.udpPort : device.udpManualPort;
         udpBroadcaster->AddDevice(device.id, port, device.pairingMethod == PairingMethod::MANUAL_UDP);
+        break;
       }
       case PairingMethod::CLOUD_TCP:
-        hasTCPServer = true;
-        continue;
-      default: {
+        break;
+      default:
         spdlog::error("Invalid pairing method.");
-        continue;
-      }
+        break;
     }
-    if(connection != nullptr) {
-      connection->SetUnlockInfo(authUser, authProgram);
-      connections.emplace_back(connection);
-    }
+    if(NetworkHelper::IsOverlayIpv4(device.tsIP) && device.tsIP != device.ipAddress)
+      addTcpClient(device.tsIP, device.tcpPort, device);
   }
-  if(hasTCPServer) {
-    auto server = new TCPUnlockServer();
-    server->SetUnlockInfo(authUser, authProgram);
-    connections.emplace_back(server);
-  }
-  if(connections.empty()) {
-    auto errorMsg = I18n::Get("error_not_paired", authUser);
-    spdlog::error(errorMsg);
-    m_PrintMessage(errorMsg);
-    return UnlockResult(UnlockState::NOT_PAIRED_ERROR);
-  }
+
+  auto *server = new TCPUnlockServer();
+  server->SetUnlockInfo(authUser, authProgram);
+  connections.emplace_back(server);
 
   // Start servers
   std::vector<std::thread> threads{};
@@ -82,10 +87,8 @@ UnlockResult UnlockHandler::GetResult(const std::string &authUser, const std::st
     threads.emplace_back([this, connection, numServers, isRunning, &currentResult, &completed, &cv, &mutex, udpBroadcaster]() {
       auto serverResult = RunServer(connection, udpBroadcaster, &currentResult, isRunning);
       completed.fetch_add(1);
-      if(serverResult.state == UnlockState::SUCCESS)
-        currentResult.store(serverResult);
       if(completed.load() == numServers) {
-        if(currentResult.load().state != UnlockState::SUCCESS)
+        if(currentResult.load().state != UnlockState::SUCCESS && !currentResult.isClaimed())
           currentResult.store(serverResult);
         std::lock_guard l(mutex);
         cv.notify_one();
@@ -135,8 +138,9 @@ UnlockResult UnlockHandler::RunServer(BaseUnlockConnection *connection, UDPUnloc
   auto startTime = Utils::GetCurrentTimeMs();
   auto isWaitingForConnection = true;
   auto isFutureCancel = false;
+  auto claimedSuccess = false;
   while(true) {
-    if(currentResult->load().state == UnlockState::SUCCESS || (isRunning != nullptr && !isRunning->load())) {
+    if(currentResult->isClaimed() || (isRunning != nullptr && !isRunning->load())) {
       state = UnlockState::CANCELED;
       isFutureCancel = true;
       break;
@@ -150,6 +154,14 @@ UnlockResult UnlockHandler::RunServer(BaseUnlockConnection *connection, UDPUnloc
     }
 
     state = connection->PollResult();
+    if(state == UnlockState::SUCCESS) {
+      if(!currentResult->tryClaimSuccess()) {
+        state = UnlockState::CANCELED;
+        isFutureCancel = true;
+        break;
+      }
+      claimedSuccess = true;
+    }
     if(state != UnlockState::UNKNOWN)
       break;
     if(!connection->HasClient() && Utils::GetCurrentTimeMs() - startTime > CRYPT_PACKET_TIMEOUT) {
@@ -182,12 +194,16 @@ UnlockResult UnlockHandler::RunServer(BaseUnlockConnection *connection, UDPUnloc
     auto errorMsg = I18n::Get("error_password_decrypt");
     spdlog::error(errorMsg);
     m_PrintMessage(errorMsg);
-    return UnlockResult(UnlockState::DATA_ERROR);
+    auto failed = UnlockResult(UnlockState::DATA_ERROR);
+    currentResult->store(failed);
+    return failed;
   }
 
   auto result = UnlockResult();
   result.state = state;
   result.device = connection->GetDevice();
   result.password = pwDec.has_value() ? pwDec.value() : "";
+  if(claimedSuccess)
+    currentResult->store(result);
   return result;
 }

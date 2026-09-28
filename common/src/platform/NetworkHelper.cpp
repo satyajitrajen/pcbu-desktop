@@ -314,3 +314,19 @@ bool NetworkHelper::IsWiredEthernet(const std::string &ifName) {
 #endif
   return false;
 }
+
+bool NetworkHelper::IsOverlayIpv4(const std::string &ip) {
+  in_addr addr{};
+  if(inet_pton(AF_INET, ip.c_str(), &addr) != 1)
+    return false;
+  auto host = ntohl(addr.s_addr);
+  return (host & 0xFFC00000u) == 0x64400000u;
+}
+
+std::string NetworkHelper::GetOverlayIpv4() {
+  for(const auto &netIf : GetLocalNetInterfaces(false)) {
+    if(IsOverlayIpv4(netIf.ipAddress))
+      return netIf.ipAddress;
+  }
+  return {};
+}

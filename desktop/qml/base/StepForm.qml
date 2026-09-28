@@ -1,13 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import PCBioUnlock
+import JarvisAuth
 
 Rectangle {
-    Layout.fillWidth: true
-    Layout.fillHeight: true
     id: stepFormRect
-    color: window.color
+    anchors.fill: parent
+    color: Theme.night
 
     property string description: "No description."
     property alias backTitle: stepButtons.backTitle
@@ -17,14 +16,17 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 10
-            Layout.bottomMargin: 20
+            Layout.topMargin: 8
+            Layout.bottomMargin: 16
             id: stepDescLabel
             text: stepFormRect.description
             wrapMode: Label.WordWrap
-            font.pointSize: 18
+            color: Theme.paper
+            font.pixelSize: 16
         }
         ColumnLayout {
             Layout.fillWidth: true

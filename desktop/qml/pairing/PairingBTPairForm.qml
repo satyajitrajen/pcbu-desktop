@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 StepForm {

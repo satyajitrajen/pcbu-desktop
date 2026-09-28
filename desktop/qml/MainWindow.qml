@@ -3,33 +3,94 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
-import PCBioUnlock
+import JarvisAuth
+import 'qrc:/ui/base'
 
-ApplicationWindow {
+BenchWindow {
     id: window
     width: 1024
     height: 768
-    minimumWidth: 1024
-    minimumHeight: 768
+    minimumWidth: 900
+    minimumHeight: 640
     visible: true
-    title: 'PC Bio Unlock'
+    title: MainWindow.GetAppName()
 
     property bool canClose: true
-    onClosing: function(close) { close.accepted = window.canClose }
+    property bool quitting: false
+    property bool trayAvailable: false
+    property bool serviceInstalled: false
+    property bool hasPairing: false
+    onClosing: function(close) {
+        if (!window.canClose) {
+            close.accepted = false
+            return
+        }
+        if (window.quitting || !window.trayAvailable) {
+            close.accepted = true
+            return
+        }
+        close.accepted = false
+        window.hide()
+    }
+
+    function refreshStatus() {
+        serviceInstalled = MainWindow.IsInstalled();
+        hasPairing = MainWindow.IsPaired();
+    }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 25
-        Label {
-            id: title
-            text: 'PC Bio Unlock'
-            font.pointSize: 36
+        spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: window.serviceInstalled ? Theme.brass : Theme.hairline
+        }
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 20
+            Layout.rightMargin: 20
+            Layout.topMargin: 16
+            Layout.bottomMargin: 8
+            ColumnLayout {
+                spacing: 4
+                Label {
+                    text: MainWindow.GetAppName()
+                    color: Theme.mute
+                    font.pixelSize: 12
+                }
+                Label {
+                    text: !window.serviceInstalled
+                          ? QI18n.Get('not_installed')
+                          : (window.hasPairing ? QI18n.Get('paired') : QI18n.Get('not_paired'))
+                    color: window.serviceInstalled ? Theme.brass : Theme.paper
+                    font.pixelSize: 22
+                    font.weight: Font.DemiBold
+                }
+            }
+            Item { Layout.fillWidth: true }
+            Label {
+                text: 'Version %1'.arg(UpdaterWindow.GetAppVersion())
+                color: Theme.mute
+                font.pixelSize: 12
+                font.family: Theme.monoFont
+            }
         }
         Loader {
             id: viewLoader
             Layout.fillWidth: true
             Layout.fillHeight: true
             source: "qrc:/ui/forms/MainForm.qml"
+            onLoaded: {
+                if (item) {
+                    item.anchors.fill = viewLoader
+                }
+            }
+            onStatusChanged: {
+                if (status === Loader.Error)
+                    console.warn("Failed to load", source)
+            }
+            onSourceChanged: window.refreshStatus()
         }
     }
 
@@ -114,6 +175,7 @@ ApplicationWindow {
         viewLoader.item.progressBar.indeterminate = false;
         viewLoader.item.progressBar.value = 100;
         viewLoader.item.progressLbl.text = text;
+        window.refreshStatus();
     }
 
     function updateBluetoothDeviceList(devices) {
@@ -145,8 +207,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        if(MainWindow.PerformStartupChecks(viewLoader, window)) {
-            UpdaterWindow.CheckForUpdates(window);
-        }
+        window.refreshStatus();
+        MainWindow.PerformStartupChecks(viewLoader, window);
     }
 }

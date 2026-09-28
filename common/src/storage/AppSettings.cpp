@@ -19,10 +19,10 @@ std::filesystem::path AppSettings::GetBaseDir() {
 #ifdef WINDOWS
   wchar_t szPath[MAX_PATH]{};
   if(SHGetFolderPathW(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, szPath) == S_OK)
-    return fmt::format(L"{}\\PCBioUnlock", szPath);
-  return "C:\\ProgramData\\PCBioUnlock";
+    return fmt::format(L"{}\\JarvisAuth", szPath);
+  return "C:\\ProgramData\\JarvisAuth";
 #else
-  return {"/etc/pc-bio-unlock"};
+  return {"/etc/jarvis-auth"};
 #endif
 }
 
@@ -55,6 +55,7 @@ PCBUAppStorage AppSettings::Load() {
     settings.pairingDiscoveryPort = json.value("pairingDiscoveryPort", 43297);
     settings.pairingServerPort = json["pairingServerPort"];
     settings.unlockServerPort = json["unlockServerPort"];
+    settings.lockServerPort = static_cast<uint16_t>(json.value("lockServerPort", 43298));
     settings.clientSocketTimeout = json["clientSocketTimeout"];
     settings.clientConnectTimeout = json["clientConnectTimeout"];
     settings.clientConnectRetries = json["clientConnectRetries"];
@@ -78,6 +79,7 @@ PCBUAppStorage AppSettings::Load() {
     def.pairingDiscoveryPort = 43297;
     def.pairingServerPort = 43295;
     def.unlockServerPort = 43296;
+    def.lockServerPort = 43298;
     def.clientSocketTimeout = 120;
     def.clientConnectTimeout = 5;
     def.clientConnectRetries = 2;
@@ -105,6 +107,7 @@ void AppSettings::Save(const PCBUAppStorage &storage) {
         {"pairingDiscoveryPort", storage.pairingDiscoveryPort},
         {"pairingServerPort", storage.pairingServerPort},
         {"unlockServerPort", storage.unlockServerPort},
+        {"lockServerPort", storage.lockServerPort},
         {"clientSocketTimeout", storage.clientSocketTimeout},
         {"clientConnectTimeout", storage.clientConnectTimeout},
         {"clientConnectRetries", storage.clientConnectRetries},

@@ -2,41 +2,55 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import PCBioUnlock
+import JarvisAuth
+import 'qrc:/ui/base'
 
-ApplicationWindow {
+BenchWindow {
     id: aboutWindow
     width: 800
     height: 600
     title: QI18n.Get('about')
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 25
-        Label {
-            text: 'PC Bio Unlock'
-            font.pointSize: 36
+        spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: Theme.hairline
         }
-        Label {
-            text: '%1 %2'.arg(QI18n.Get('version')).arg(UpdaterWindow.GetAppVersion())
-            font.pointSize: 16
-        }
-        Label {
-            text: QI18n.Get('by_meis_apps')
-        }
-        Label {
-            text: "<a href=\"https://meis-apps.com\">https://meis-apps.com</a>"
-            onLinkActivated: function(link) { Qt.openUrlExternally(link); }
-        }
-        Label {
-            Layout.topMargin: 15
-            text: '%1:'.arg(QI18n.Get('licenses'))
-        }
-        ScrollView {
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            TextArea {
-                readOnly: true
-                text: MainWindow.GetLicenseText()
+            Layout.margins: 20
+            spacing: 8
+            Label {
+                text: MainWindow.GetAppName()
+                color: Theme.mute
+                font.pixelSize: 12
+            }
+            Label {
+                text: '%1 %2'.arg(QI18n.Get('version')).arg(UpdaterWindow.GetAppVersion())
+                color: Theme.paper
+                font.pixelSize: 22
+                font.weight: Font.DemiBold
+            }
+            Label {
+                Layout.topMargin: 16
+                text: QI18n.Get('licenses')
+                color: Theme.mute
+                font.pixelSize: 12
+            }
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                TextArea {
+                    readOnly: true
+                    color: Theme.paper
+                    font.family: Theme.monoFont
+                    font.pixelSize: 12
+                    text: MainWindow.GetLicenseText()
+                    background: Rectangle { color: Theme.steel }
+                }
             }
         }
     }

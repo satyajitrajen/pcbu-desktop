@@ -1,14 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import PCBioUnlock
+import JarvisAuth
 
-Rectangle {
+Item {
     Layout.fillWidth: true
-    Layout.alignment: Qt.AlignBottom
-    Layout.minimumHeight: 60
+    Layout.preferredHeight: 72
     id: stepButtonsRect
-    color: window.color
 
     property alias backBtn: stepButtonBack
     property alias nextBtn: stepButtonNext
@@ -18,22 +16,35 @@ Rectangle {
     signal backClicked()
     signal nextClicked()
 
-    RowLayout {
+    ColumnLayout {
         anchors.fill: parent
-        Button {
-            Layout.minimumWidth: 100
-            Layout.minimumHeight: 50
-            id: stepButtonBack
-            text: stepButtonsRect.backTitle
-            onClicked: stepButtonsRect.backClicked()
+        spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            color: Theme.hairline
         }
-        Button {
-            Layout.minimumWidth: 100
-            Layout.minimumHeight: 50
-            Layout.alignment: Qt.AlignRight
-            id: stepButtonNext
-            text: stepButtonsRect.nextTitle
-            onClicked: stepButtonsRect.nextClicked()
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.topMargin: 12
+            Button {
+                Layout.preferredHeight: 48
+                Layout.minimumWidth: 120
+                id: stepButtonBack
+                flat: true
+                text: stepButtonsRect.backTitle
+                onClicked: stepButtonsRect.backClicked()
+            }
+            Item { Layout.fillWidth: true }
+            Button {
+                Layout.preferredHeight: 48
+                Layout.minimumWidth: 160
+                id: stepButtonNext
+                highlighted: true
+                text: stepButtonsRect.nextTitle
+                onClicked: stepButtonsRect.nextClicked()
+            }
         }
     }
 }

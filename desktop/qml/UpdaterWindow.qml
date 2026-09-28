@@ -3,9 +3,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
-import PCBioUnlock
+import JarvisAuth
+import 'qrc:/ui/base'
 
-ApplicationWindow {
+BenchWindow {
     id: updaterWindow
     width: 400
     height: 250
@@ -22,46 +23,64 @@ ApplicationWindow {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 25
-        Label {
-            text: QI18n.Get('update_available')
-            font.pointSize: 18
-        }
-        Label {
-            text: '%1: %2'.arg(QI18n.Get('your_version')).arg(UpdaterWindow.GetAppVersion())
-        }
-        Label {
-            text: '%1: %2'.arg(QI18n.Get('latest_version')).arg(UpdaterWindow.GetLatestVersion())
-        }
-        Label {
-            Layout.topMargin: 15
-            id: downloadProgressLabel
-            text: '0%'
-        }
-        ProgressBar {
-            Layout.bottomMargin: 15
+        spacing: 0
+        Rectangle {
             Layout.fillWidth: true
-            id: downloadProgressBar
-            to: 100
+            Layout.preferredHeight: 2
+            color: Theme.hairline
         }
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignBottom | Qt.AlignRight
-            Button {
-                id: downloadButton
-                text: QI18n.Get('download')
-                onClicked: {
-                    downloadButton.enabled = false;
-                    ignoreButton.enabled = false;
-                    UpdaterWindow.OnDownloadClicked(updaterWindow)
-                }
+            Layout.fillHeight: true
+            Layout.margins: 20
+            Label {
+                text: QI18n.Get('update_available')
+                color: Theme.paper
+                font.pixelSize: 18
+                font.weight: Font.DemiBold
             }
-            Button {
-                id: ignoreButton
-                text: QI18n.Get('ignore')
-                onClicked: {
-                    updaterWindow.canClose = true;
-                    updaterWindow.close();
+            Label {
+                text: '%1: %2'.arg(QI18n.Get('your_version')).arg(UpdaterWindow.GetAppVersion())
+                color: Theme.mute
+            }
+            Label {
+                text: '%1: %2'.arg(QI18n.Get('latest_version')).arg(UpdaterWindow.GetLatestVersion())
+                color: Theme.mute
+            }
+            Label {
+                Layout.topMargin: 15
+                id: downloadProgressLabel
+                color: Theme.paper
+                font.family: Theme.monoFont
+                text: '0%'
+            }
+            ProgressBar {
+                Layout.bottomMargin: 15
+                Layout.fillWidth: true
+                id: downloadProgressBar
+                to: 100
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                Button {
+                    id: ignoreButton
+                    flat: true
+                    text: QI18n.Get('ignore')
+                    onClicked: {
+                        updaterWindow.canClose = true;
+                        updaterWindow.close();
+                    }
+                }
+                Button {
+                    id: downloadButton
+                    highlighted: true
+                    text: QI18n.Get('download')
+                    onClicked: {
+                        downloadButton.enabled = false;
+                        ignoreButton.enabled = false;
+                        UpdaterWindow.OnDownloadClicked(updaterWindow)
+                    }
                 }
             }
         }

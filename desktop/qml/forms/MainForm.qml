@@ -1,150 +1,202 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Controls.Material
-
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 Form {
-    RowLayout {
-        id: mainRowLayout
+    ColumnLayout {
         anchors.fill: parent
-        GroupBox {
-            title: QI18n.Get('service_module')
-            Layout.preferredWidth: parent.width / 3.5
-            Layout.preferredHeight: parent.height / 1.6
-            ColumnLayout {
-                anchors.fill: parent
-                Label {
-                    text: '%1: %2'.arg(QI18n.Get('status')).arg(MainWindow.IsInstalled() ? QI18n.Get('installed') : QI18n.Get('not_installed'))
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        spacing: 0
+
+        DevicesTableModel {
+            id: devicesTableModel
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 48
+            Label {
+                text: QI18n.Get('service_module')
+                color: Theme.mute
+                font.pixelSize: 12
+            }
+            Item { Layout.fillWidth: true }
+            Label {
+                text: MainWindow.IsInstalled() ? QI18n.Get('installed') : QI18n.Get('not_installed')
+                color: Theme.paper
+                font.family: Theme.monoFont
+                font.pixelSize: 13
+            }
+        }
+        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.hairline }
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 48
+            Label {
+                text: QI18n.Get('installed_version')
+                color: Theme.mute
+                font.pixelSize: 12
+            }
+            Item { Layout.fillWidth: true }
+            Label {
+                text: MainWindow.GetInstalledVersion()
+                color: Theme.paper
+                font.family: Theme.monoFont
+                font.pixelSize: 13
+            }
+        }
+        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.hairline }
+
+        Label {
+            Layout.topMargin: 24
+            Layout.bottomMargin: 8
+            text: QI18n.Get('devices')
+            color: Theme.mute
+            font.pixelSize: 12
+        }
+
+        ListView {
+            id: devicesList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: devicesTableModel
+            currentIndex: -1
+            delegate: ItemDelegate {
+                required property int index
+                required property string pairingId
+                required property string deviceName
+                required property string userName
+                required property string method
+                width: devicesList.width
+                height: 80
+                highlighted: devicesList.currentIndex === index
+                onClicked: {
+                    devicesList.currentIndex = index;
+                    deviceRemoveBtn.enabled = true;
+                    deviceTestUnlockBtn.enabled = true;
                 }
-                Label {
-                    text: '%1: %2'.arg(QI18n.Get('installed_version')).arg(MainWindow.GetInstalledVersion())
+                background: Rectangle {
+                    color: devicesList.currentIndex === index ? Theme.steel : "transparent"
                 }
+                contentItem: RowLayout {
+                    anchors.fill: parent
+                    anchors.rightMargin: 8
+                    ColumnLayout {
+                        spacing: 4
+                        Label {
+                            text: deviceName
+                            color: Theme.paper
+                            font.pixelSize: 22
+                            font.weight: Font.DemiBold
+                        }
+                        Label {
+                            text: userName
+                            color: Theme.mute
+                            font.pixelSize: 12
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                    Label {
+                        text: method
+                        color: Theme.mute
+                        font.family: Theme.monoFont
+                        font.pixelSize: 12
+                    }
+                }
+            }
+
+            Label {
+                visible: devicesTableModel.count() === 0
+                anchors.centerIn: parent
+                text: QI18n.Get('not_paired')
+                color: Theme.mute
+                font.pixelSize: 16
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 8
+            Layout.bottomMargin: 8
+            visible: devicesList.currentIndex !== -1
+            Button {
+                id: deviceRemoveBtn
+                flat: true
+                text: QI18n.Get('remove_device')
+                enabled: false
+                onClicked: {
+                    showConfirmMessage(QI18n.Get('confirm_remove_device'), function () {
+                        let selDevice = devicesTableModel.get(devicesList.currentIndex);
+                        MainWindow.OnRemoveDeviceClicked(viewLoader, selDevice[0]);
+                    });
+                }
+            }
+            Button {
+                id: deviceTestUnlockBtn
+                flat: true
+                text: QI18n.Get('unlock_test')
+                enabled: false
+                onClicked: {
+                    let selDevice = devicesTableModel.get(devicesList.currentIndex);
+                    let unlockWin = Qt.createComponent("qrc:/ui/UnlockTestWindow.qml").createObject(window, {deviceId: selDevice[0]});
+                    unlockWin.show();
+                }
+            }
+            Item { Layout.fillWidth: true }
+        }
+
+        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Theme.hairline }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.topMargin: 16
+            Layout.bottomMargin: 20
+            spacing: 8
+
+            Button {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 48
+                highlighted: true
+                text: MainWindow.IsInstalled() ? QI18n.Get('pair_device') : QI18n.Get('install')
+                onClicked: {
+                    if (MainWindow.IsInstalled())
+                        PairingForm.Show(viewLoader, window);
+                    else
+                        MainWindow.OnInstallClicked(window);
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                visible: MainWindow.IsInstalled()
                 Button {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: MainWindow.IsInstalled() ? QI18n.Get('uninstall') : QI18n.Get('install')
+                    flat: true
+                    text: QI18n.Get('uninstall')
                     onClicked: MainWindow.OnInstallClicked(window)
                 }
                 Button {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    flat: true
                     text: QI18n.Get('reinstall')
                     enabled: MainWindow.IsInstalled()
                     onClicked: MainWindow.OnReinstallClicked(window)
                 }
                 Button {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    flat: true
                     text: QI18n.Get('settings')
                     enabled: MainWindow.IsInstalled()
                     onClicked: SettingsForm.Show(viewLoader)
                 }
             }
-        }
-
-        GroupBox {
-            title: QI18n.Get('devices')
-            Layout.preferredWidth: parent.width / 1.8
-            Layout.preferredHeight: parent.height / 1.45
-            Layout.alignment: Qt.AlignRight
-            ColumnLayout {
-                anchors.fill: parent
-                Label {
-                    text: '%1: %2'.arg(QI18n.Get('status')).arg(MainWindow.IsPaired() ? QI18n.Get('paired') : QI18n.Get('not_paired'))
-                }
-                DevicesTableModel {
-                    id: devicesTableModel
-                }
-                HorizontalHeaderView {
-                    Layout.fillWidth: true
-                    id: devicesTableHeader
-                    syncView: devicesTableView
-                    model: [QI18n.Get('device_name'), QI18n.Get('user'), QI18n.Get('method')]
-                    clip: true
-                    delegate: Rectangle {
-                        color: window.color
-                        border.width: 1
-                        implicitHeight: 50
-                        Label {
-                            color: Material.foreground
-                            text: modelData
-                            anchors.centerIn: parent
-                        }
-                    }
-                }
-                TableView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    id: devicesTableView
-                    boundsBehavior: Flickable.StopAtBounds
-                    columnWidthProvider: function(column) { return devicesTableView.width / 3; }
-                    model: devicesTableModel
-
-                    property int selectedRow: -1
-                    delegate: ItemDelegate {
-                        highlighted: row === devicesTableView.selectedRow
-                        onClicked: {
-                            devicesTableView.selectedRow = row
-                            deviceRemoveBtn.enabled = row !== -1;
-                            deviceTestUnlockBtn.enabled = row !== -1;
-                        }
-                        text: model.tableData
-                    }
-                }
-                RowLayout {
-                    Button {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 60
-                        text: QI18n.Get('pair_device')
-                        enabled: MainWindow.IsInstalled()
-                        onClicked: PairingForm.Show(viewLoader, window)
-                    }
-                    Button {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 70
-                        Layout.preferredHeight: 60
-                        id: deviceRemoveBtn
-                        text: QI18n.Get('remove_device')
-                        enabled: false
-                        onClicked: {
-                            showConfirmMessage(QI18n.Get('confirm_remove_device'), function () {
-                                let selDevice = devicesTableModel.get(devicesTableView.selectedRow);
-                                MainWindow.OnRemoveDeviceClicked(viewLoader, selDevice[0]);
-                            });
-                        }
-                    }
-                    Button {
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 50
-                        Layout.preferredHeight: 60
-                        id: deviceTestUnlockBtn
-                        text: QI18n.Get('unlock_test')
-                        enabled: false
-                        onClicked: {
-                            let selDevice = devicesTableModel.get(devicesTableView.selectedRow);
-                            let unlockWin = Qt.createComponent("qrc:/ui/UnlockTestWindow.qml").createObject(window, {deviceId: selDevice[0]});
-                            unlockWin.show();
-                        }
-                    }
-                }
-            }
-        }
-    }
-    ColumnLayout {
-        anchors.top: mainRowLayout.top
-        anchors.bottom: parent.bottom
-        width: parent.width
-        height: 60
-        ColumnLayout {
-            Layout.minimumWidth: 100
-            Layout.alignment: Qt.AlignBottom | Qt.AlignHCenter
             RowLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
                 Button {
-                    Layout.minimumWidth: 100
-                    Layout.minimumHeight: 40
+                    flat: true
                     text: QI18n.Get('about')
                     onClicked: {
                         let aboutWin = Qt.createComponent("qrc:/ui/AboutWindow.qml").createObject(window);
@@ -152,19 +204,13 @@ Form {
                     }
                 }
                 Button {
-                    Layout.minimumWidth: 100
-                    Layout.minimumHeight: 40
+                    flat: true
                     text: QI18n.Get('logs')
                     onClicked: {
                         let logsWin = Qt.createComponent("qrc:/ui/LogsWindow.qml").createObject(window);
                         logsWin.show();
                     }
                 }
-            }
-            Label {
-                Layout.minimumWidth: 200
-                horizontalAlignment: Text.AlignHCenter
-                text: 'Version %1'.arg(UpdaterWindow.GetAppVersion())
             }
         }
     }

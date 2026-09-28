@@ -10,6 +10,7 @@
         <file>base/Form.qml</file>
         <file>base/StepForm.qml</file>
         <file>base/StepButtons.qml</file>
+        <file>base/BenchWindow.qml</file>
 
         <file>forms/MainForm.qml</file>
         <file>forms/SettingsForm.qml</file>

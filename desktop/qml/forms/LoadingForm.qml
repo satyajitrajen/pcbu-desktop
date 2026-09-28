@@ -2,50 +2,45 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 Form {
-    Rectangle {
+    ColumnLayout {
         anchors.fill: parent
-        color: window.color
-        ColumnLayout {
-            id: loadProgressContainer
-            anchors.top: parent.top
-            anchors.topMargin: parent.height / 3
-            width: parent.width
-            Label {
-                id: loadProgressLabel
-                text: QI18n.Get('please_wait')
-            }
-            ProgressBar {
-                Layout.fillWidth: true
-                id: loadProgressBar
-                indeterminate: true
-                to: 100
-            }
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        spacing: 12
+        Label {
+            id: loadProgressLabel
+            color: Theme.paper
+            font.pixelSize: 16
+            text: QI18n.Get('please_wait')
         }
-
-        ColumnLayout {
-            anchors.top: loadProgressContainer.bottom
-            anchors.topMargin: 15
-            width: parent.width
-            height: parent.height - loadProgressContainer.y - loadProgressContainer.height
-            TextArea {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                id: loadOutputTextArea
-                readOnly: true
-            }
-            Button {
-                id: loadOkButton
-                Layout.minimumWidth: 100
-                Layout.minimumHeight: 50
-                Layout.alignment: Qt.AlignRight
-                text: "Ok"
-                enabled: false
-                onClicked: MainWindow.Show(viewLoader)
-            }
+        ProgressBar {
+            Layout.fillWidth: true
+            id: loadProgressBar
+            indeterminate: true
+            to: 100
+        }
+        TextArea {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            id: loadOutputTextArea
+            readOnly: true
+            color: Theme.paper
+            font.family: Theme.monoFont
+            font.pixelSize: 12
+            background: Rectangle { color: Theme.steel }
+        }
+        Button {
+            id: loadOkButton
+            Layout.fillWidth: true
+            Layout.preferredHeight: 48
+            highlighted: true
+            text: "Ok"
+            enabled: false
+            onClicked: MainWindow.Show(viewLoader)
         }
     }
 

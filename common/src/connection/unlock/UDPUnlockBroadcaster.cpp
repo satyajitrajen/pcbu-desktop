@@ -1,6 +1,7 @@
 #include "UDPUnlockBroadcaster.h"
 
 #include "connection/Packets.h"
+#include "platform/NetworkHelper.h"
 #include "storage/AppSettings.h"
 
 constexpr int INTERVAL_MS = 2000;
@@ -24,6 +25,7 @@ void UDPUnlockBroadcaster::SendToTarget(const BroadcastTarget &target) {
     packet.pcbuIP = target.sourceIP;
     packet.pcbuPort = m_UnlockPort;
     packet.isManual = device.isManual;
+    packet.tsIP = NetworkHelper::GetOverlayIpv4();
     auto payload = packet.ToJson().dump();
     SendBroadcast(target, {payload.begin(), payload.end()}, device.devicePort);
   }

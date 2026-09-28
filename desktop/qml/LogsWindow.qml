@@ -2,50 +2,64 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import PCBioUnlock
+import JarvisAuth
+import 'qrc:/ui/base'
 
-ApplicationWindow {
+BenchWindow {
     id: logsWindow
     width: 800
     height: 600
     title: QI18n.Get('logs')
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 25
+        spacing: 0
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color: Theme.hairline
+        }
         ColumnLayout {
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: parent.height / 2
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.margins: 20
+            spacing: 8
             Label {
-                text: '%1:'.arg(QI18n.Get('desktop_logs'))
+                text: QI18n.Get('desktop_logs')
+                color: Theme.mute
+                font.pixelSize: 12
             }
             ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                id: desktopLogScrollView
                 TextArea {
                     id: desktopLogTextArea
                     readOnly: true
                     wrapMode: Text.WordWrap
+                    color: Theme.paper
+                    font.family: Theme.monoFont
+                    font.pixelSize: 12
                     text: QI18n.Get('loading')
+                    background: Rectangle { color: Theme.steel }
                 }
             }
-        }
-        ColumnLayout {
-            Layout.topMargin: 25
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: parent.height / 2
             Label {
-                text: '%1:'.arg(QI18n.Get('module_logs'))
+                Layout.topMargin: 12
+                text: QI18n.Get('module_logs')
+                color: Theme.mute
+                font.pixelSize: 12
             }
             ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                id: moduleLogScrollView
                 TextArea {
                     id: moduleLogTextArea
                     readOnly: true
                     wrapMode: Text.WordWrap
+                    color: Theme.paper
+                    font.family: Theme.monoFont
+                    font.pixelSize: 12
                     text: QI18n.Get('loading')
+                    background: Rectangle { color: Theme.steel }
                 }
             }
         }

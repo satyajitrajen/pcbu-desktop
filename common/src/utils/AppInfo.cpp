@@ -5,6 +5,10 @@
 
 #include <spdlog/spdlog.h>
 
+std::string AppInfo::GetName() {
+  return "JarvisAuth";
+}
+
 std::string AppInfo::GetVersion() {
   std::string version = "3.3.4";
   if(PCBU_DEBUG)
@@ -18,6 +22,14 @@ std::string AppInfo::GetPairingProtocolVersion() {
 
 std::string AppInfo::GetUnlockProtocolVersion() {
   return "3.0.0";
+}
+
+std::string AppInfo::GetLockProtocolVersion() {
+  return "1.0.0";
+}
+
+std::string AppInfo::GetLockPowerProtocolVersion() {
+  return "1.1.0";
 }
 
 std::string AppInfo::GetOperatingSystem() {

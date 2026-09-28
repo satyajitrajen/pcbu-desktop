@@ -1,9 +1,8 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
 import QtQuick.Controls.Material
-
-import PCBioUnlock
+import QtQuick.Layouts
+import JarvisAuth
 import 'qrc:/ui/base'
 
 StepForm {
@@ -14,7 +13,7 @@ StepForm {
     Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        color: Material.background
+        color: Theme.night
         ColumnLayout {
             anchors.fill: parent
             spacing: 16
@@ -22,10 +21,12 @@ StepForm {
                 BusyIndicator {
                     running: true
                     scale: 0.75
+                    Material.accent: Theme.brass
                 }
                 Label {
                     text: QI18n.Get('pairing_form_bt_scanning')
-                    font.pointSize: 14
+                    color: Theme.paper
+                    font.pixelSize: 14
                 }
             }
             ListView {
@@ -35,25 +36,22 @@ StepForm {
                 model: ListModel {
                     id: selectBTDeviceListModel
                 }
-                spacing: 5
+                spacing: 0
                 currentIndex: -1
                 delegate: ItemDelegate {
                     width: selectBTDeviceList.width
-                    height: 40
+                    height: 64
                     background: Rectangle {
                         anchors.fill: parent
-                        color: selectBTDeviceList.currentIndex === index ? Material.accent : Material.color(Material.Grey, Material.Shade700)
-                        radius: 20
+                        color: selectBTDeviceList.currentIndex === index ? Theme.steel : "transparent"
                     }
                     contentItem: Row {
                         anchors.fill: parent
-                        anchors.leftMargin: 10
-                        Column {
+                        Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            Label {
-                                text: name
-                                color: Material.foreground
-                            }
+                            text: name
+                            color: Theme.paper
+                            font.pixelSize: 16
                         }
                         MouseArea {
                             anchors.fill: parent

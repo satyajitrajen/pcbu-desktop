@@ -175,6 +175,8 @@ void PairingServer::ClientThread(SOCKET clientSocket) {
     device.udpManualPort = initPacket->udpManualPort;
     device.bluetoothAddress = m_UIData.btAddress;
     device.cloudToken = initPacket->cloudToken;
+    if(NetworkHelper::IsOverlayIpv4(initPacket->tsIP))
+      device.tsIP = initPacket->tsIP;
 
     auto respPacket = PacketPairResponse();
     respPacket.data = PacketPairResponseData();

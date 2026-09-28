@@ -12,6 +12,7 @@ class MainWindow : public QObject {
 public:
   ~MainWindow() override;
 
+  Q_INVOKABLE QString GetAppName();
   Q_INVOKABLE bool IsInstalled();
   Q_INVOKABLE bool IsPaired();
   Q_INVOKABLE QString GetInstalledVersion();

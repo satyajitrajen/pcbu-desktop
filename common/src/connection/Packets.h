@@ -2,6 +2,7 @@
 #define PCBU_DESKTOP_PACKETS_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -11,12 +12,26 @@
 
 constexpr uint64_t PACKET_HEADER = 0xDB065AC7AFDFA4CC;
 
+// Optional Tailscale overlay IPv4. Additive JSON; omit when empty. Do not put this on 0xB0 (raw pairing id).
+inline std::string JsonTsIP(const nlohmann::json &json) {
+  if(json.contains("tsIP") && json["tsIP"].is_string())
+    return json["tsIP"].get<std::string>();
+  return {};
+}
+
+inline void SetJsonTsIP(nlohmann::json &json, const std::string &tsIP) {
+  if(!tsIP.empty())
+    json["tsIP"] = tsIP;
+}
+
 constexpr uint16_t PACKET_ID_PAIR_INIT = 0x50;
 constexpr uint16_t PACKET_ID_PAIR_RESPONSE = 0x51;
 
 constexpr uint16_t PACKET_ID_DEVICE_ID = 0xB0;
 constexpr uint16_t PACKET_ID_UNLOCK_REQUEST = 0xB1;
 constexpr uint16_t PACKET_ID_UNLOCK_RESPONSE = 0xB2;
+constexpr uint16_t PACKET_ID_LOCK_REQUEST = 0xB3;
+constexpr uint16_t PACKET_ID_LOCK_RESPONSE = 0xB4;
 
 struct PacketPairInit { // From phone
   std::string protoVersion{};
@@ -27,6 +42,7 @@ struct PacketPairInit { // From phone
   uint16_t udpPort{};
   uint16_t udpManualPort{};
   std::string cloudToken{};
+  std::string tsIP{};
 
   static std::optional<PacketPairInit> FromJson(const std::string &jsonStr) {
     try {
@@ -41,6 +57,7 @@ struct PacketPairInit { // From phone
         packet.udpPort = json["udpPort"];
         packet.udpManualPort = json["udpManualPort"];
         packet.cloudToken = json["cloudToken"];
+        packet.tsIP = JsonTsIP(json);
       } catch(...) {
       }
       return packet;
@@ -85,9 +102,12 @@ struct PacketUnlockRequest {
   std::string protoVersion;
   std::string deviceId;
   std::string encData;
+  std::string tsIP{};
 
   nlohmann::json ToJson() {
-    return {{"protoVersion", protoVersion}, {"deviceId", deviceId}, {"encData", encData}};
+    nlohmann::json json = {{"protoVersion", protoVersion}, {"deviceId", deviceId}, {"encData", encData}};
+    SetJsonTsIP(json, tsIP);
+    return json;
   }
 };
 
@@ -104,6 +124,7 @@ struct PacketUnlockRequestData {
 struct PacketUnlockResponse {
   std::string error;
   std::string encData;
+  std::string tsIP{};
 
   static std::optional<PacketUnlockResponse> FromJson(const std::string &jsonStr) {
     try {
@@ -111,6 +132,7 @@ struct PacketUnlockResponse {
       auto packet = PacketUnlockResponse();
       packet.error = json["error"];
       packet.encData = json["encData"];
+      packet.tsIP = JsonTsIP(json);
       return packet;
     } catch(...) {
     }
@@ -140,9 +162,12 @@ struct PacketUDPBroadcast {
   std::string pcbuIP;
   uint16_t pcbuPort;
   bool isManual;
+  std::string tsIP{};
 
   nlohmann::json ToJson() {
-    return {{"deviceId", deviceId}, {"pcbuIP", pcbuIP}, {"pcbuPort", pcbuPort}, {"isManual", isManual}};
+    nlohmann::json json = {{"deviceId", deviceId}, {"pcbuIP", pcbuIP}, {"pcbuPort", pcbuPort}, {"isManual", isManual}};
+    SetJsonTsIP(json, tsIP);
+    return json;
   }
 };
 
@@ -153,6 +178,64 @@ struct PacketUDPPairBeacon {
 
   nlohmann::json ToJson() {
     return {{"serverId", serverId}, {"ip", ip}, {"port", port}};
+  }
+};
+
+struct PacketLockRequest {
+  std::string protoVersion{};
+  std::string deviceId{};
+  std::string encData{};
+  std::string tsIP{};
+
+  static std::optional<PacketLockRequest> FromJson(const std::string &jsonStr) {
+    try {
+      auto json = nlohmann::json::parse(jsonStr);
+      auto packet = PacketLockRequest();
+      packet.protoVersion = json["protoVersion"];
+      packet.deviceId = json["deviceId"];
+      packet.encData = json["encData"];
+      packet.tsIP = JsonTsIP(json);
+      return packet;
+    } catch(...) {
+    }
+    return {};
+  }
+};
+
+struct PacketLockRequestData {
+  std::string pcDeviceId{};
+  std::string nonce{};
+  std::string action{};
+
+  static std::optional<PacketLockRequestData> FromJson(const std::string &jsonStr) {
+    try {
+      auto json = nlohmann::json::parse(jsonStr);
+      auto packet = PacketLockRequestData();
+      packet.pcDeviceId = json["pcDeviceId"];
+      packet.nonce = json["nonce"];
+      if(json.contains("action") && json["action"].is_string())
+        packet.action = json["action"].get<std::string>();
+      return packet;
+    } catch(...) {
+    }
+    return {};
+  }
+};
+
+struct PacketLockResponse {
+  std::string error{};
+  std::string encData{};
+
+  nlohmann::json ToJson() {
+    return {{"error", error}, {"encData", encData}};
+  }
+};
+
+struct PacketLockResponseData {
+  std::string nonce{};
+
+  nlohmann::json ToJson() {
+    return {{"nonce", nonce}};
   }
 };
 

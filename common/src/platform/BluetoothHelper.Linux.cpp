@@ -8,6 +8,8 @@
 #include <spdlog/spdlog.h>
 #include <unistd.h>
 
+#include "utils/AppInfo.h"
+
 bool BluetoothHelper::IsAvailable() {
   int dev_id = hci_get_route(nullptr);
   int sock = hci_open_dev(dev_id);
@@ -172,7 +174,8 @@ std::optional<SDPService> BluetoothHelper::RegisterSDPService(uint8_t channel) {
 
   accessProtoList = sdp_list_append(nullptr, protoList);
   sdp_set_access_protos(record, accessProtoList);
-  sdp_set_info_attr(record, "PC Bio Unlock BT", "", "");
+  auto btServiceName = AppInfo::GetName() + " BT";
+  sdp_set_info_attr(record, btServiceName.c_str(), "", "");
 
   bdaddr_t local = {{0, 0, 0, 0xff, 0xff, 0xff}};
   bdaddr_t localAny = {{0, 0, 0, 0, 0, 0}};

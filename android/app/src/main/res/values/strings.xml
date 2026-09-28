@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JarvisAuth</string>
+    <string name="listener_notification_title">JarvisAuth is listening</string>
+    <string name="listener_notification_text">Unlock requests will appear here.</string>
+    <string name="listener_stop">Stop</string>
+</resources>

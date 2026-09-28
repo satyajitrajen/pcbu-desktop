@@ -22,10 +22,13 @@ if(WIN32)
             Bthprops
             ole32
             Shell32
+            user32
     )
     set(PLATFORM_SRC
             src/connection/unlock/clients/BTUnlockClient.cpp
             src/connection/unlock/servers/BTUnlockServer.cpp
+            src/connection/lock/LockServer.cpp
+            src/connection/lock/LockServer.h
             src/platform/PlatformHelper.Win.cpp
             src/platform/BluetoothHelper.Win.cpp
             src/utils/RegistryUtils.cpp
@@ -140,16 +143,15 @@ target_link_libraries(pcbu_common PUBLIC
 # Commit header
 set(COMMIT_HEADER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/commit.h")
 cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH PCBU_ROOT)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
 add_custom_command(
     OUTPUT ${COMMIT_HEADER_FILE}
-    COMMAND sh -c "echo '#ifndef PCBU_COMMIT_H' > ${COMMIT_HEADER_FILE} && \
-                echo '#define PCBU_COMMIT_H' >> ${COMMIT_HEADER_FILE} && \
-                echo '#include <string_view>' >> ${COMMIT_HEADER_FILE} && \
-                echo 'constexpr std::string_view GIT_COMMIT_HASH = \"'$(git rev-parse --short HEAD)'\";' >> ${COMMIT_HEADER_FILE} && \
-                echo 'constexpr std::string_view GIT_BRANCH = \"'$(git rev-parse --abbrev-ref HEAD)'\";' >> ${COMMIT_HEADER_FILE} && \
-                echo '#endif' >> ${COMMIT_HEADER_FILE}"
+    COMMAND ${CMAKE_COMMAND}
+            -DCOMMIT_HEADER_FILE=${COMMIT_HEADER_FILE}
+            -DPCBU_ROOT=${PCBU_ROOT}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/update_commit.cmake
     WORKING_DIRECTORY ${PCBU_ROOT}
-    DEPENDS ${PCBU_ROOT}/.git/index
+    DEPENDS ${PCBU_ROOT}/.git/index ${CMAKE_CURRENT_SOURCE_DIR}/update_commit.cmake
     COMMENT "Updating commit hash"
     VERBATIM
 )
@@ -161,37 +163,18 @@ function(embed_json TARGET JSON_FILE VARIABLE_PREFIX)
     get_filename_component(JSON_PATH ${JSON_FILE} ABSOLUTE)
     set(GENERATED_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/generated/${VARIABLE_PREFIX}.h)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/generated)
-    if(LINUX OR APPLE)
-        add_custom_command(
-            OUTPUT ${GENERATED_HEADER}
-            COMMAND sh -c "echo '#ifndef PCBU_${VARIABLE_PREFIX}_H' > ${GENERATED_HEADER} && \
-                        echo '#define PCBU_${VARIABLE_PREFIX}_H' >> ${GENERATED_HEADER} && \
-                        echo '#include <nlohmann/json.hpp>' >> ${GENERATED_HEADER} && \
-                        echo 'inline const nlohmann::json ${VARIABLE_PREFIX}_DATA = nlohmann::json::parse(R\"json(' >> ${GENERATED_HEADER} && \
-                        cat ${JSON_PATH} >> ${GENERATED_HEADER} && \
-                        echo ')json\");' >> ${GENERATED_HEADER} && \
-                        echo '#endif' >> ${GENERATED_HEADER}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS ${JSON_PATH}
-            COMMENT "Generating JSON header: ${GENERATED_HEADER}"
-            VERBATIM
-        )
-    else()
-        add_custom_command(
-            OUTPUT ${GENERATED_HEADER}
-            COMMAND sh -c "echo '#ifndef PCBU_${VARIABLE_PREFIX}_H' > ${GENERATED_HEADER} && \
-                        echo '#define PCBU_${VARIABLE_PREFIX}_H' >> ${GENERATED_HEADER} && \
-                        echo '#include <nlohmann/json.hpp>' >> ${GENERATED_HEADER} && \
-                        echo -e 'inline const nlohmann::json ${VARIABLE_PREFIX}_DATA = nlohmann::json::parse(R\\x22json(' >> ${GENERATED_HEADER} && \
-                        cat ${JSON_PATH} >> ${GENERATED_HEADER} && \
-                        echo -e ')json\\x22);' >> ${GENERATED_HEADER} && \
-                        echo '#endif' >> ${GENERATED_HEADER}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            DEPENDS ${JSON_PATH}
-            COMMENT "Generating JSON header: ${GENERATED_HEADER}"
-            VERBATIM
-        )
-    endif()
+    add_custom_command(
+        OUTPUT ${GENERATED_HEADER}
+        COMMAND ${CMAKE_COMMAND}
+                -DJSON_PATH=${JSON_PATH}
+                -DGENERATED_HEADER=${GENERATED_HEADER}
+                -DVARIABLE_PREFIX=${VARIABLE_PREFIX}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/embed_json.cmake
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS ${JSON_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/embed_json.cmake
+        COMMENT "Generating JSON header: ${GENERATED_HEADER}"
+        VERBATIM
+    )
     add_custom_target(generate_json_header_${VARIABLE_PREFIX} DEPENDS ${GENERATED_HEADER})
     add_dependencies(${TARGET} generate_json_header_${VARIABLE_PREFIX})
 endfunction()

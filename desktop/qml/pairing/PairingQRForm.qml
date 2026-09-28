@@ -1,49 +1,49 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
-import PCBioUnlock
+import JarvisAuth
 import 'qrc:/ui/base'
 
 StepForm {
     description: QI18n.Get('pairing_form_qr_desc')
     nextTitle: QI18n.Get('main_menu')
-    Rectangle {
+    RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        color: window.color
-        RowLayout {
-            anchors.fill: parent
+        spacing: 24
+        Image {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.alignment: Qt.AlignCenter
+            fillMode: Image.PreserveAspectFit
+            source: PairingForm.GetQRImage()
+            sourceSize: Qt.size(qrImage.sourceSize.width * 5, qrImage.sourceSize.height * 5)
             Image {
+                id: qrImage
+                source: parent.source
+                width: 0
+                height: 0
+            }
+        }
+        ColumnLayout {
+            Layout.preferredWidth: 280
+            Layout.fillHeight: true
+            Label {
+                text: QI18n.Get('pairing_code')
+                color: Theme.mute
+                font.pixelSize: 12
+            }
+            ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.alignment: Qt.AlignCenter
-                fillMode: Image.PreserveAspectFit
-                source: PairingForm.GetQRImage()
-                sourceSize: Qt.size(qrImage.sourceSize.width * 5, qrImage.sourceSize.height * 5)
-                Image {
-                    id: qrImage
-                    source: parent.source
-                    width: 0
-                    height: 0
-                }
-            }
-            ColumnLayout {
-                Layout.preferredWidth: 100
-                Layout.fillHeight: true
-                Layout.leftMargin: 20
-                Label {
-                    text: '%1:'.arg(QI18n.Get('pairing_code'))
-                    font.pointSize: 12
-                    verticalAlignment: Text.AlignVCenter
-                }
-                ScrollView {
-                    Layout.fillWidth: true
-                    TextArea {
-                        readOnly: true
-                        wrapMode: Text.Wrap
-                        text: PairingForm.GetPairingCode()
-                    }
+                TextArea {
+                    readOnly: true
+                    wrapMode: Text.Wrap
+                    color: Theme.paper
+                    font.family: Theme.monoFont
+                    font.pixelSize: 14
+                    text: PairingForm.GetPairingCode()
+                    background: Rectangle { color: Theme.steel }
                 }
             }
         }

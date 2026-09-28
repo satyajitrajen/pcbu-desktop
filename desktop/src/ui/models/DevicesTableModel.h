@@ -7,12 +7,13 @@
 class DevicesTableModel : public QAbstractTableModel {
   Q_OBJECT
   QML_ELEMENT
-  enum TableRoles { TableDataRole = Qt::UserRole + 1, PairingIdRole };
+  enum TableRoles { TableDataRole = Qt::UserRole + 1, PairingIdRole, NameRole, UserRole, MethodRole };
 
 public:
   explicit DevicesTableModel(QObject *parent = nullptr);
 
   Q_INVOKABLE QVector<QString> get(int rowIdx);
+  Q_INVOKABLE int count() const;
 
   [[nodiscard]] int rowCount(const QModelIndex &) const override;
   [[nodiscard]] int columnCount(const QModelIndex &) const override;

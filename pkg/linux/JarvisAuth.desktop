@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=PC Bio Unlock
+Name=JarvisAuth
 Exec=run-app.sh
-Icon=PCBioUnlock
+Icon=JarvisAuth
 Terminal=false
 Categories=Settings;Security;
